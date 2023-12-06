@@ -44,20 +44,3 @@ main(void)
 
     return 0;
 }
-
-// This C program creates a pipe `fd[2]` and a fork.The child process
-//     runs `bc` command with its standard output duplicated to the write
-// - end of the pipe.The parent then closes the              read
-// - end of the pipe and reassigns its standard input to the read
-// - end of the                                              pipe.
-//
-//   Do note that the error checking in this example code is pretty minimal,
-// and doesn't handle all error possibilities, making a robust program would
-// require much more care.
-//
-// Also,
-// remember to compile this code with - Wall
-//     - g flags if want debuging info and all the libraries should be
-//           installed at required directories
-//               .Also need to have bc installed in the linux
-//                   system.This program can perform arithmetic operations.
