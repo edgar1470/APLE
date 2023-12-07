@@ -14,8 +14,8 @@ Advanced Programming in the Linux Environment from Vienct Wei's class.
 
 
 ## 第二讲作业
-1. 阅读开源 档及代码：
-    Glib 中的 件操作和 件系统接 封装
+1. 阅读开源文档及代码：
+    Glib 中的文件操作和文件件系统接的封装
     https://docs.gtk.org/glib
     https://github.com/GNOME/glib
 2. 改写方同学的程序，使之很容易重现写混乱；进一步增强上述程序，使之彻底避免写混乱。 [我的实现](https://github.com/edgar1470/APLE/blob/main/src/lecture01_memory_management/multi-process-concurent-write-to-one-same-file.c)
