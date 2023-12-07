@@ -16,8 +16,8 @@ Advanced Programming in the Linux Environment from Vienct Wei's class.
 ## 第二讲作业
 1. 阅读开源文档及代码：
     Glib 中的文件操作和文件件系统接的封装
-    https://docs.gtk.org/glib
-    https://github.com/GNOME/glib
+    [glib document](https://docs.gtk.org/glib)
+    [glib source](https://github.com/GNOME/glib)
 2. 改写方同学的程序，使之很容易重现写混乱；进一步增强上述程序，使之彻底避免写混乱。 [我的实现](https://github.com/edgar1470/APLE/blob/main/src/lecture01_memory_management/multi-process-concurent-write-to-one-same-file.c)
 3. 编写一个程序，启动 /bin/bc 并通过伪终端驱动 /bin/bc 完成任意精度的四则表达式计算。[我的实现](https://github.com/edgar1470/APLE/blob/main/src/lecture02_filesystem/fake-bc.c)
 4. 编写一个 Shell 脚本和一个 C 程序用于遍历文件系统，给出指定路径下所有文件和目录项的总和. [我的实现](https://github.com/edgar1470/APLE/blob/main/src/lecture02_filesystem/recursive-iterator-directory.sh) [我的实现](https://github.com/edgar1470/APLE/blob/main/src/lecture02_filesystem/recursive-iterator-directory.c)
