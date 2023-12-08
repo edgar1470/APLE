@@ -22,14 +22,14 @@ main(void)
 
     if (pid == 0) {                 // 子进程
         dup2(fd[1], STDOUT_FILENO); // STDOUT -> pipe 写端点
-        close(fd[0]);               // 关闭 STDIN
+        close(fd[0]);               // 关闭 pipe 读端点
 
         char *args[] = { "bc", NULL };
         execvp(args[0], args); // 调用 bc , 接受用户输入，输出给管道
         fprintf(stderr, "child failed on execvp bc\n");
         return -1;
     } else {                       // 父进程
-        close(fd[1]);              // 关闭 STDOUT
+        close(fd[1]);              // 关闭 pipe 写端点
         dup2(fd[0], STDIN_FILENO); // STDIN -> pipe 读端点
 
         // char *args[] = { "/data/playground/APLE/APLE_github_repo/src/"
@@ -44,3 +44,9 @@ main(void)
 
     return 0;
 }
+
+// Please note that `execvp()` only returns if an error occurs. This means the
+// actual code after `execvp()` will not be executed in case of an error.
+// Always check the return value of `execvp()` to make sure the command was
+// executed successfully. If an error occurs, the program should clean up and
+// quit.
