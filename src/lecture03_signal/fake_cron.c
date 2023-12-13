@@ -15,12 +15,85 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#define CMD_MAX_BYTES 128
+struct mycmd {
+    char cmd[CMD_MAX_BYTES];
+    int  start;  // begin run cmd after 'start' seconds
+    int  period; // run cmd after every 'peroid' second
+    int  count;  // run cmd 'count' times
+};
+
+struct simple_cron {
+    struct mycmd cmd1;
+    struct mycmd cmd2;
+    struct mycmd cmd3;
+};
+struct simple_cron mycron;
+
+int
+load_config(struct simple_cron *cron)
+{
+#define CONFIGFILE "/tmp/test.cfg"
+    FILE   *file;
+    char   *line = NULL;
+    ssize_t nread;
+    size_t  len;
+    char   *pnext;
+    file = fopen(CONFIGFILE, "r");
+    if (file == NULL) {
+        syslog(LOG_ERR, "failed to load %s", CONFIGFILE);
+        return -1;
+    }
+    int cmd_count = 0;
+    while ((nread = getline(&line, &len, file)) != -1) {
+        line[nread] = 0x0;
+        // syslog(LOG_INFO, "read=[%s] len=%d nread=%d", line, len, nread);
+        if (line[0] == '#') {
+            continue; // ignore comments
+        }
+        int  start;
+        int  period;
+        int  count;
+        char buf[CMD_MAX_BYTES];
+        memset(buf, 0x0, sizeof(buf));
+        sscanf(line, "%d %d %d %[^\n]%*c", &start, &period, &count, buf);
+        syslog(LOG_INFO, "start=%d period=%d count=%d cmd=%s", start, period,
+               count, buf);
+        struct mycmd tmp;
+        tmp.start  = start;
+        tmp.period = period;
+        tmp.count  = count;
+        strncpy(tmp.cmd, buf, strlen(buf));
+
+        switch (cmd_count) {
+        case 0:
+            memcpy(&cron->cmd1, &tmp, sizeof(struct mycmd));
+            cmd_count++;
+            break;
+        case 1:
+            memcpy(&cron->cmd2, &tmp, sizeof(struct mycmd));
+            cmd_count++;
+            break;
+        case 2:
+            memcpy(&cron->cmd3, &tmp, sizeof(struct mycmd));
+            cmd_count++;
+            break;
+        defalut:
+            syslog(LOG_INFO, "only support 3 comamnds");
+            syslog(LOG_INFO, "ignore %s", buf);
+            break;
+        }
+    }
+    free(line);
+    return 0;
+}
+
 void
 print_elapsed_time(void)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    syslog(LOG_INFO, "%d.%d", now.tv_sec, now.tv_nsec);
+    syslog(LOG_INFO, "pid=%d %d.%d", getpid(), now.tv_sec, now.tv_nsec);
 }
 
 int
@@ -126,86 +199,16 @@ signal_handler(int signum)
     switch (signum) {
     case SIGTERM:
         // cleanup
+        syslog(LOG_ERR, "exit cleanup");
         break;
     case SIGHUP:
         // reload config
+        memset(&mycron, 0x0, sizeof(struct simple_cron));
+        load_config(&mycron);
         break;
     default:
         break;
     }
-}
-
-#define CMD_MAX_BYTES 128
-struct mycmd {
-    char cmd[CMD_MAX_BYTES];
-    int  start;  // begin run cmd after 'start' seconds
-    int  period; // run cmd after every 'peroid' second
-    int  count;  // run cmd 'count' times
-};
-
-struct simple_cron {
-    struct mycmd cmd1;
-    struct mycmd cmd2;
-    struct mycmd cmd3;
-};
-struct simple_cron mycron;
-
-int
-load_config(struct simple_cron *cron)
-{
-#define CONFIGFILE "/tmp/test.cfg"
-    FILE   *file;
-    char   *line = NULL;
-    ssize_t nread;
-    size_t  len;
-    char   *pnext;
-    file = fopen(CONFIGFILE, "r");
-    if (file == NULL) {
-        syslog(LOG_ERR, "failed to load %s", CONFIGFILE);
-        return -1;
-    }
-    int cmd_count = 0;
-    while ((nread = getline(&line, &len, file)) != -1) {
-        line[nread] = 0x0;
-        // syslog(LOG_INFO, "read=[%s] len=%d nread=%d", line, len, nread);
-        if (line[0] == '#') {
-            continue; // ignore comments
-        }
-        int  start;
-        int  period;
-        int  count;
-        char buf[CMD_MAX_BYTES];
-        memset(buf, 0x0, sizeof(buf));
-        sscanf(line, "%d %d %d %[^\n]%*c", &start, &period, &count, buf);
-        syslog(LOG_INFO, "start=%d period=%d count=%d cmd=%s", start, period,
-               count, buf);
-        struct mycmd tmp;
-        tmp.start  = start;
-        tmp.period = period;
-        tmp.count  = count;
-        strncpy(tmp.cmd, buf, strlen(buf));
-
-        switch (cmd_count) {
-        case 0:
-            memcpy(&cron->cmd1, &tmp, sizeof(struct mycmd));
-            cmd_count++;
-            break;
-        case 1:
-            memcpy(&cron->cmd2, &tmp, sizeof(struct mycmd));
-            cmd_count++;
-            break;
-        case 2:
-            memcpy(&cron->cmd3, &tmp, sizeof(struct mycmd));
-            cmd_count++;
-            break;
-        defalut:
-            syslog(LOG_INFO, "only support 3 comamnds");
-            syslog(LOG_INFO, "ignore %s", buf);
-            break;
-        }
-    }
-    free(line);
-    return 0;
 }
 
 int
@@ -248,7 +251,8 @@ main()
     }
     FD_ZERO(&rfds);
 
-    for (int i = 0; i < 10; i++) {
+    // for (int i = 0; i < 10; i++) {
+    while (1) {
         // sleep(5);
         // syslog(LOG_INFO, "daemon [%d] running", getpid());
         // syslog(LOG_INFO, "cmd1=%s", mycron.cmd1.cmd);
